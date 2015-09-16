@@ -52,7 +52,11 @@
 		# calculate models in each point on the grid
 		if (verbose)  print(paste("discrete grid search, calculate models in", nrow(lambda.points), "points")) 
 		
-		models<-apply(lambda.points,1, eval(Q.func) , 
+		library(parallel)
+		cl <- makeCluster(detectCores()-1, type = "FORK", outfile="log/cluster.txt")
+		registerDoParallel(cl)
+
+		models<-parApply(cl,lambda.points,1, eval(Q.func) , 
 	                  x.svm=x, y.svm=y, maxIter=maxIter,
 	                  class.weights=class.weights,
 	                  parms.coding=parms.coding, 
@@ -60,7 +64,8 @@
 	                  cross.inner = cross.inner,
 	                  verbose=verbose,
 	                  seed = seed)
-		
+		stopCluster(cl)
+
 		#save(models, file=paste("discrete_models_",fs.method, ".RData", sep=""))
 		#print("/////////////////////////////////////////////////")
 			
